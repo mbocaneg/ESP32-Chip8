@@ -14,14 +14,6 @@
 
 Chip8 chip8;
 
-static void hello_task(void *pvParameters)
-{
-    while(1){
-        printf("Hello World\n");
-        vTaskDelay(SECONDS(2));
-    }
-}
-
 static void chip8_task(void *pvParameters){
     printf("    at CHIP8 task\n");
     while(1){
@@ -29,26 +21,19 @@ static void chip8_task(void *pvParameters){
             // printf("        clockcycling...\n");
             chip8_clockcycle(&chip8);
         }
-
         _window_kill();
     }
-    
-
 }
 
 
 void app_main(void)
 {
-
-
-
     // chip8_loadmem(&chip8, invaders, sizeof(invaders));
     chip8_loadmem(&chip8, pong, sizeof(pong));
     chip8_bind_io(&_getKeystate, &_drawScreen, &_get_tick, &_beep);
     _window_init();
     chip8_init(&chip8);
 
-    // xTaskCreate(&hello_task, "hello_task", 1024, NULL, 5, NULL);
     printf("Starting CHIP8\n");
     xTaskCreate(&chip8_task, "chip8_task", 16 * 1024, NULL, 1, NULL); 
 }
