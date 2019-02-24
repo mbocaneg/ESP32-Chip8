@@ -19,25 +19,7 @@ void _window_kill(){
     ssd1306_clear(0);
     ssd1306_refresh(0, true);
 }
-void _drawScreen(Chip8 *chip8){
-    // ssd1306_clear(0);
-    ssd1306_draw_rectangle(0, 0*2, 0*2, 10, 10, SSD1306_COLOR_BLACK);
-    ssd1306_draw_rectangle(0, 10*2, 10*2, 10, 10, SSD1306_COLOR_BLACK);
-	for (uint16_t y = 0; y < 32; y++) {
-		for (uint16_t x = 0; x < 64; x++) {
-			bool state = (PIXELTEST(x, y)) ? true : false;
-			if(state == true)
-                ssd1306_fill_rectangle(0, x*2, y*2, 10, 10, SSD1306_COLOR_WHITE);
-			else
-                ssd1306_fill_rectangle(0, x*2, y*2, 10, 10, SSD1306_COLOR_BLACK);
 
-		}
-	}
-    ssd1306_refresh(0, true);
-}
-void _drawScreenInvert(Chip8 *chip8){
-
-}
 void _getKeystate(Chip8 *chip8){
 
 }

@@ -29,6 +29,7 @@ extern "C" {
     #define V (chip8->regV)
     #define I (chip8->regI)
 
+    #define REDRAW (chip8->redraw)
     #define DELAY (chip8->delay)
     #define SOUND (chip8->sound)
     #define HALT (chip8->halt)
@@ -42,10 +43,12 @@ extern "C" {
     #define DISPLAY (chip8->display)
     #define DISPLAY_WIDTH 64
     #define DISPLAY_HEIGHT 32
-    #define PIXELXOR(I, J) DISPLAY[(I)/8][(J) % 32] ^= (1 << ((I) % 8))
-    #define PIXELTEST(I, J) (DISPLAY[(I)/8][(J) % 32]) & (1 << ((I) % 8))
+    // #define PIXELXOR(I, J) DISPLAY[(I)/8][(J) % 32] ^= (1 << ((I) % 8))
+    // #define PIXELTEST(I, J) (DISPLAY[(I)/8][(J) % 32]) & (1 << ((I) % 8))
 
     typedef struct Chip8_t {
+
+        bool redraw;
 
         /* wait and halt flags */
         bool halt;
@@ -130,6 +133,10 @@ extern "C" {
     void chip8_opD(Chip8 *chip8);
     void chip8_opE(Chip8 *chip8);
     void chip8_opF(Chip8 *chip8);
+
+    bool chip8_pixel_test(Chip8 *chip8, uint8_t i, uint8_t j);
+    void chip8_keyset(Chip8 *chip8, uint8_t key);
+    void chip8_keyreset(Chip8 *chip8, uint8_t key);
 
     /* I/O Routines*/
     void chip8_bind_io(void (*getKeystate)(Chip8 *chip8), void (*drawScreen)(Chip8 *chip8),

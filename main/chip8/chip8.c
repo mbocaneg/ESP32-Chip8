@@ -36,6 +36,7 @@ void chip8_init(Chip8 *chip8) {
     /* Copy fonts into system memory */
     memcpy(MEMORY, chip8_font, 80);
 
+    REDRAW = false;
     HALT = false;
     PAUSE = false;
 
@@ -96,10 +97,6 @@ void chip8_clockcycle(Chip8 *chip8) {
         //     chip8_drawScreen(chip8);
         // }
 
-    }
-
-    if(chip8_getKeystate != NULL){
-        chip8_getKeystate(chip8);
     }
 
 }
@@ -311,9 +308,19 @@ void chip8_opC(Chip8 *chip8) {
     V[X] = NN & (rand() % 0xFF);
 }
 
+static void pixel_draw(Chip8 *chip8, uint8_t i, uint8_t j){
+    chip8->display[i/8][j % 32] ^= (1 << (i % 8));
+}
+
+bool chip8_pixel_test(Chip8 *chip8, uint8_t i, uint8_t j){
+    return (chip8->display[i/8][j % 32]) & (1 << (i % 8));
+}
+
 /* DXYN - Draws a sprite at coordinate (VX, VY) that has
 * a width of 8 pixels and a height of N pixels */
 void chip8_opD(Chip8 *chip8) {
+
+    while(REDRAW == true){}
 
     V[0xF] = 0;
     uint8_t xx = V[X];
@@ -322,19 +329,17 @@ void chip8_opD(Chip8 *chip8) {
         uint8_t pixel = MEMORY[I + i];
         for(int j = 0; j < 8; j++){
             if( (pixel & (0x80 >> j)) != 0x00){
-                if(PIXELTEST(xx+j, yy+i))
+                if(chip8_pixel_test(chip8, xx+j, yy+i))
                 V[0xF] |= 1;
-                PIXELXOR(xx+j, yy+i);
+                pixel_draw(chip8, xx+j, yy+i);
             }
         }
     }
 
-    if(chip8_drawScreen != NULL){
-        // printf("drawing\n");
-        chip8_drawScreen(chip8);
-    }
+    REDRAW = true;
 
 }
+
 
 void chip8_opE(Chip8 *chip8) {
     // EXA1 - Skips the next instruction if the key stored in VX isn't pressed
@@ -426,6 +431,15 @@ void chip8_opF(Chip8 *chip8) {
         }
         I += (X + 1);
     }
+}
+
+
+void chip8_keyset(Chip8 *chip8, uint8_t key ){
+    chip8->keypad |= (1 << key );
+}
+
+void chip8_keyreset(Chip8 *chip8, uint8_t key ){
+    chip8->keypad &= ~(1 << key);
 }
 
 /********************************************************************************/
