@@ -8,5 +8,5 @@
 #
 
 
-COMPONENT_SRCDIRS := ./chip8 ./ssd1306/src/ ./
-COMPONENT_ADD_INCLUDEDIRS := ./chip8 ./ssd1306/inc/ ./
+COMPONENT_SRCDIRS := ./chip8 ./ssd1306/src/ ./keypad ./
+COMPONENT_ADD_INCLUDEDIRS := ./chip8 ./ssd1306/inc/ ./keypad ./

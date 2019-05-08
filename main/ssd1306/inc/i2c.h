@@ -25,6 +25,7 @@
 
 #include "stdbool.h"
 #include "stdint.h"
+#include "driver/i2c.h"
 
 /**
  * @brief   Initialize I2C GPIO pins

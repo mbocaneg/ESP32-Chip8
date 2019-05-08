@@ -1,24 +1,20 @@
 #include "chip8.h"
 #include <stdio.h>
 #include <string.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
 
-uint16_t rom_size = 0;
-char *rom_name;
+uint32_t dt = 0;
 uint32_t start_time = 0;
+
 uint16_t currentPC = 0;
+extern SemaphoreHandle_t redraw_signal;
 
 void chip8_loadmem(Chip8 *chip8, uint8_t rom[], uint16_t length) {
     /* Clear system memory*/
     memset(MEMORY, 0x00, memsize);
     memcpy(&MEMORY[0x200], rom, length);
-}
-
-void chip8_bind_io(void (*getKeystate)(Chip8 *chip8), void (*drawScreen)(Chip8 *chip8),
-uint64_t (*_get_tick)(), void (*_beep)()){
-    chip8_drawScreen = drawScreen;
-    chip8_getKeystate = getKeystate;
-    chip8_get_tick = _get_tick;
-    chip8_beep = _beep;
 }
 
 void chip8_init(Chip8 *chip8) {
@@ -54,14 +50,14 @@ void chip8_init(Chip8 *chip8) {
 
 void chip8_clockcycle(Chip8 *chip8) {
     uint32_t elapsed = 0;
-    uint32_t dt = 0;
 
     if(!PAUSE){
 
         elapsed = chip8_get_tick();
         dt = elapsed - start_time;
 
-        if(dt > 3){
+
+        if(dt > 500){
             // fetch instruction
             INSTRUCTION = (MEMORY[PC] << 8) | (MEMORY[PC + 1]);
 
@@ -73,29 +69,9 @@ void chip8_clockcycle(Chip8 *chip8) {
             // decode instruction
             chip8_decode(chip8);
 
-        }
-
-        if (dt > 16 ) {
-
-            if(DELAY > 0){
-                DELAY -= 1;
-            }
-
-            if(SOUND > 0){
-                SOUND -= 1;
-                if(chip8_beep != NULL){
-                    chip8_beep();
-                }
-            }
-
             start_time = elapsed;
-            elapsed = 0;
         }
-
-        // if(chip8_drawScreen != NULL){
-        //     // printf("drawing\n");
-        //     chip8_drawScreen(chip8);
-        // }
+        // xSemaphoreGive(redraw_signal);
 
     }
 
@@ -319,9 +295,6 @@ bool chip8_pixel_test(Chip8 *chip8, uint8_t i, uint8_t j){
 /* DXYN - Draws a sprite at coordinate (VX, VY) that has
 * a width of 8 pixels and a height of N pixels */
 void chip8_opD(Chip8 *chip8) {
-
-    while(REDRAW == true){}
-
     V[0xF] = 0;
     uint8_t xx = V[X];
     uint8_t yy = V[Y];
@@ -335,23 +308,30 @@ void chip8_opD(Chip8 *chip8) {
             }
         }
     }
-
-    REDRAW = true;
-
+    xSemaphoreGive(redraw_signal);
 }
 
 
 void chip8_opE(Chip8 *chip8) {
-    // EXA1 - Skips the next instruction if the key stored in VX isn't pressed
+    // EXA1 - Skips the next instruction if the key stored in VX isn pressed
     if (NN == 0x00A1) {
-        if (KEYTEST(V[X]) == 0)
-        PC += 2;
+        // if(dt > 3){
+        if (KEYTEST(V[X]) == 0){
+            PC += 2;  
+        }
+        // }
+
+
     }
 
     // EX9E - Skips the next instruction if the key stored in VX isn't pressed
     else if (NN == 0x009E) {
-        if (KEYTEST(V[X]) != 0)
-        PC += 2;
+        // if(dt > 3){
+        if (KEYTEST(V[X]) != 0){
+            PC += 2;
+        }
+        // }
+
     }
 }
 
@@ -366,9 +346,7 @@ void chip8_opF(Chip8 *chip8) {
     else if(NN == 0x0A){
         bool wait = true;
         while(wait && !HALT){
-            if(chip8_getKeystate != NULL){
-                chip8_getKeystate(chip8);
-            }
+            
             for(uint8_t i = 0; i < 16; i++){
                 if(KEYTEST(i) != 0){
                     V[X] = i;
@@ -440,34 +418,4 @@ void chip8_keyset(Chip8 *chip8, uint8_t key ){
 
 void chip8_keyreset(Chip8 *chip8, uint8_t key ){
     chip8->keypad &= ~(1 << key);
-}
-
-/********************************************************************************/
-void chip8_printCurrentInstruction(Chip8 *chip8) {
-    printf("PC: 0x%04x | ", (unsigned short) currentPC);
-    printf("INSTRUCTION: 0x%04X\n\n", (unsigned short) INSTRUCTION);
-}
-
-void chip8_printRom(Chip8 *chip8) {
-    printf("**************************\n");
-    printf("ROM : %s \nLENGTH: %hu bytes\n", rom_name, rom_size);
-    printf("**************************\n");
-    for (uint16_t i = 0x200; i < 0x200 + rom_size; i++) {
-        printf("0x%04x: ", (unsigned short) i);
-        printf("%x", (unsigned char) MEMORY[i] & 0xff);
-        printf("\n");
-    }
-}
-
-void chip8_printMem(Chip8 *chip8) {
-    printf("**************************\n");
-    printf("MEMORY DUMP\n");
-    printf("**************************\n");
-
-    uint16_t memsize = 4096;
-    for (uint16_t i = 0; i < memsize; i++) {
-        printf("0x%04x: ", (unsigned short) i);
-        printf("%02hhX", (unsigned char) MEMORY[i] & 0xff);
-        printf("\n");
-    }
 }
