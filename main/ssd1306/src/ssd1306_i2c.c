@@ -1,30 +1,3 @@
-/**
-  ******************************************************************************
-  * @file    ssd1306_i2c.c
-  * @author  Baoshi <mail(at)ba0sh1(dot)com>
-  * @version 0.6
-  * @date    Dec 29, 2014
-  * @brief   SSD1306 I2C OLED driver for ESP8266
-  ******************************************************************************
-  * @copyright
-  *
-  * Many of the work here are based on Adafruit SSD1306 and GFX Arduino library.
-  * Please support Adafruit by purchasing products from Adafruit!
-  *
-  * Copyright (c) 2015, Baoshi Zhu. All rights reserved.
-  * Use of this source code is governed by a BSD-style license that can be
-  * found in the LICENSE.txt file.
-  *
-  * THIS SOFTWARE IS PROVIDED 'AS-IS', WITHOUT ANY EXPRESS OR IMPLIED
-  * WARRANTY.  IN NO EVENT WILL THE AUTHOR(S) BE HELD LIABLE FOR ANY DAMAGES
-  * ARISING FROM THE USE OF THIS SOFTWARE,
-  *
-  ******************************************************************************
-  */
-
-
-//#include "esp_common.h"
-//#include "dmsg.h"
 #include "i2c.h"
 #include "fonts.h"
 #include "stddef.h"

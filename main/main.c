@@ -15,13 +15,13 @@
 #define SECONDS(X) ((X) * (1000 / portTICK_RATE_MS))
 #define MINUTES(Y) SECONDS(60 * (Y) )
 
-//BLACK STRIP
+//ROWS
 #define GPIO_NUM_16 16
 #define GPIO_NUM_17 17
 #define GPIO_NUM_18 18
 #define GPIO_NUM_19 19
 
-//WHITE STRIP
+//COLUMNS
 #define GPIO_NUM_32 23
 #define GPIO_NUM_33 27
 #define GPIO_NUM_34 32
@@ -84,9 +84,6 @@ and registering keypresses. Whenever a keypress is
 detected, the corresponding key flag is set in the
 chip8's keypad register. It is cleared when the key
 is released.
-
-TODO: Add keyboard logic. For the time being, dummy
-key values are loaded onto the chip8's keypad register.
 */
 static void keyscan_task(void *pvParameters){
     Keypad keypad;
@@ -141,6 +138,7 @@ static void keyscan_task(void *pvParameters){
     }
 }
 
+// CHIP8 specific counter that is used for system delay.
 static void delay_counter_task(void *pvParameters){
     while(1){
         if(c8.delay > 0){
@@ -152,6 +150,10 @@ static void delay_counter_task(void *pvParameters){
 
 }
 
+// CHIP8 specific counter that is used for system sound. After
+// it counts down to zero, a buzzing tone needs to be triggered.
+// I need to procure a speaker and add it to the setup to make it
+// work.
 static void sound_counter_task(void *pvParameters){
     while(1){
         if(c8.sound > 0){
@@ -167,6 +169,7 @@ static void sound_counter_task(void *pvParameters){
 void app_main(void)
 {
 
+    //configure the keypad gpio lines
     gpio_config_t io_conf;
 	io_conf.intr_type = GPIO_INTR_DISABLE;
 	io_conf.mode = GPIO_MODE_OUTPUT;
@@ -183,6 +186,7 @@ void app_main(void)
 
     //load game rom onto main memory. for the time
     //being, 2 games are provided: invaders and pong
+
     chip8_loadmem(&c8, invaders, sizeof(invaders));
     // chip8_loadmem(&c8, pong, sizeof(pong));
     // chip8_loadmem(&c8, tetris, sizeof(tetris));
